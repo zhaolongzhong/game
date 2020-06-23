@@ -66,72 +66,20 @@ public enum ConnectionState {
 	case Disconnected
 }
 
+protocol SocketDelegate {
+	func didConnected()
+}
+
 class StompClient {
 	private var socket: WebSocket?
 	private var isConnected = false
 	private var connectionState: ConnectionState = .Disconnected
-	private var pingTimer: Timer? {
-		willSet { pingTimer?.invalidate() }
-	}
 	
 	private var connectionHeaders: [String: String] = [String: String]()
+	private var socketDelegate: SocketDelegate?
 	
-	init() {
-		schedulePingTimer()
-	}
-	
-	deinit {
-		pingTimer = nil // cancel ping timer
-	}
-	
-	private func schedulePingTimer() {
-		let waitTime: TimeInterval = 5
-		print("schedulePingTimer waitTime: 5s")
-		DispatchQueue.main.async {
-			self.pingTimer = Timer.scheduledTimer(timeInterval: waitTime, target: self, selector: #selector(self.pingTimerFired), userInfo: nil, repeats: true)
-		}
-	}
-	
-	@objc func pingTimerFired() {
-		guard connectionState == .Connected else {
-			print("Skip, due to connectionState: \(connectionState)")
-			return
-		}
-		print("Send ping")
-		socket?.write(ping: Data()) //example on how to write a ping control frame over the socket!
-	}
-	
-	func testWebsocket() {
-		print("testWebsocket")
-		
-		openConnection()
-		
-		if (socket != nil) {
-			sendGreeting()
-			sendChat()
-		} else {
-			print("socket is nil")
-		}
-	}
-	
-	func subscribeWebSocket() {
-		subscribe(destination: "/topic/greeting")
-		subscribe(destination: "/topic/chat")
-	}
-	
-	func sendChat() {
-		print("SendChat")
-		let chatTopic = "/topic/chat"
-		sendJSONForDict(dict: ["userId":"id_123", "message": "hello, i'm id_123"] as AnyObject, toDestination: chatTopic)
-	}
-	
-	func sendGreeting() {
-		print("SendGreeting")
-		
-		let greetingTopic = "/topic/greeting"
-		var headerToSend = [String: String]()
-		headerToSend[StompCommands.commandHeaderDestination] = greetingTopic
-		sendFrame(command: StompCommands.commandSend, header: headerToSend, body: "hello world" as AnyObject)
+	init(socketDelegate: SocketDelegate? = nil) {
+		self.socketDelegate = socketDelegate
 	}
 	
     public func sendJSONForDict(dict: AnyObject, toDestination destination: String) {
@@ -146,7 +94,7 @@ class StompClient {
         }
     }
 	
-	private func openConnection() {
+	func openConnection() {
 		if connectionState == .Connected {
 			print("It's already connected.")
 			return
@@ -161,6 +109,15 @@ class StompClient {
 		socket?.onEvent = { event in
 			
 		}
+	}
+	
+	func sendPing() {
+		guard connectionState == .Connected else {
+			print("Skip, due to connectionState: \(connectionState)")
+			return
+		}
+		print("send ping")
+		socket?.write(ping: Data()) //example on how to write a ping control frame over the socket!
 	}
 	
 	//IMPORTANT: This need to be called after socket is connect and before doing anything else
@@ -205,7 +162,7 @@ class StompClient {
         sendFrame(command: StompCommands.commandSubscribe, header: headerToSend, body: nil)
     }
 	
-    private func sendFrame(command: String?, header: [String: String]?, body: AnyObject?) {
+    func sendFrame(command: String?, header: [String: String]?, body: AnyObject?) {
 		guard let socket = socket, connectionState == .Connected else {
 			return
 		}
@@ -232,16 +189,13 @@ class StompClient {
 		}
 		
 		if body == nil {
-			print("inx append \n")
 			frameString += "\n"
 		}
 		
 		frameString += StompCommands.controlChar
 		
 		print("\nSend STOMP message:\(frameString)")
-		socket.write(string: frameString) {
-			print("inx complete")
-		}
+		socket.write(string: frameString)
     }
 }
 
@@ -256,7 +210,7 @@ extension StompClient: WebSocketDelegate {
 			connectionState = .Connected
 			// Support for Spring Boot 2.1.x
 			sendConnectionHeader()
-			subscribe(destination: "/topic/greeting")
+			self.socketDelegate?.didConnected()
 		case .disconnected(let reason, let code):
 			print("Websocket is disconnected: \(reason) with code: \(code)")
 			connectionState = .Disconnected
