@@ -1,7 +1,10 @@
 package com.example.springboot.config;
 
+import com.example.springboot.websocket.InBoundChannelInterceptor;
 import com.example.springboot.websocket.MyHandshakeInterceptor;
+import com.example.springboot.websocket.OutBoundChannelInterceptor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -27,5 +30,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic", "/chat", "/greeting");
         config.setApplicationDestinationPrefixes("/topic");
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(new InBoundChannelInterceptor());
+    }
+
+    @Override
+    public void configureClientOutboundChannel(ChannelRegistration registration) {
+        registration.interceptors(new OutBoundChannelInterceptor());
     }
 }
