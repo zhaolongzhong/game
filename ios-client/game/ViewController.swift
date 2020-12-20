@@ -73,6 +73,7 @@ class ViewController: UIViewController {
 
 extension ViewController: SocketDelegate {
 	func didConnected() {
+        print("didConnected")
 		schedulePingTimer()
 		subscribeTopics()
 	}

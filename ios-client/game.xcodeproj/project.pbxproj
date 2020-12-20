@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DA0DBB55258FF8FD00E26609 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = DA0DBB54258FF8FD00E26609 /* Starscream */; };
 		DABA651724A07D7300C5D657 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DABA651624A07D7300C5D657 /* AppDelegate.swift */; };
 		DABA651924A07D7300C5D657 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DABA651824A07D7300C5D657 /* SceneDelegate.swift */; };
 		DABA651B24A07D7300C5D657 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DABA651A24A07D7300C5D657 /* ViewController.swift */; };
@@ -15,8 +16,6 @@
 		DABA652324A07D7400C5D657 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DABA652124A07D7400C5D657 /* LaunchScreen.storyboard */; };
 		DABA652E24A07D7400C5D657 /* gameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DABA652D24A07D7400C5D657 /* gameTests.swift */; };
 		DABA653924A07D7400C5D657 /* gameUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DABA653824A07D7400C5D657 /* gameUITests.swift */; };
-		DABA654824A07F7F00C5D657 /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DABA654724A07F7F00C5D657 /* Starscream.framework */; };
-		DABA654924A07F7F00C5D657 /* Starscream.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DABA654724A07F7F00C5D657 /* Starscream.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		DABA654C24A081E900C5D657 /* StompClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DABA654B24A081E900C5D657 /* StompClient.swift */; };
 /* End PBXBuildFile section */
 
@@ -44,7 +43,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				DABA654924A07F7F00C5D657 /* Starscream.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -66,7 +64,6 @@
 		DABA653424A07D7400C5D657 /* gameUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = gameUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DABA653824A07D7400C5D657 /* gameUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = gameUITests.swift; sourceTree = "<group>"; };
 		DABA653A24A07D7400C5D657 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		DABA654724A07F7F00C5D657 /* Starscream.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Starscream.framework; path = Carthage/Build/iOS/Starscream.framework; sourceTree = "<group>"; };
 		DABA654B24A081E900C5D657 /* StompClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StompClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -75,7 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DABA654824A07F7F00C5D657 /* Starscream.framework in Frameworks */,
+				DA0DBB55258FF8FD00E26609 /* Starscream in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,7 +100,6 @@
 				DABA652C24A07D7400C5D657 /* gameTests */,
 				DABA653724A07D7400C5D657 /* gameUITests */,
 				DABA651424A07D7300C5D657 /* Products */,
-				DABA654624A07F7F00C5D657 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -150,14 +146,6 @@
 			path = gameUITests;
 			sourceTree = "<group>";
 		};
-		DABA654624A07F7F00C5D657 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				DABA654724A07F7F00C5D657 /* Starscream.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -175,6 +163,9 @@
 			dependencies = (
 			);
 			name = game;
+			packageProductDependencies = (
+				DA0DBB54258FF8FD00E26609 /* Starscream */,
+			);
 			productName = game;
 			productReference = DABA651324A07D7300C5D657 /* game.app */;
 			productType = "com.apple.product-type.application";
@@ -247,6 +238,9 @@
 				Base,
 			);
 			mainGroup = DABA650A24A07D7300C5D657;
+			packageReferences = (
+				DA0DBB53258FF8FD00E26609 /* XCRemoteSwiftPackageReference "Starscream" */,
+			);
 			productRefGroup = DABA651424A07D7300C5D657 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -624,6 +618,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DA0DBB53258FF8FD00E26609 /* XCRemoteSwiftPackageReference "Starscream" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/daltoniam/Starscream.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DA0DBB54258FF8FD00E26609 /* Starscream */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DA0DBB53258FF8FD00E26609 /* XCRemoteSwiftPackageReference "Starscream" */;
+			productName = Starscream;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DABA650B24A07D7300C5D657 /* Project object */;
 }

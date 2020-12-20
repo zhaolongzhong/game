@@ -95,19 +95,23 @@ class StompClient {
     }
 	
 	func openConnection() {
+        print("openConnection")
 		if connectionState == .Connected {
 			print("It's already connected.")
 			return
 		}
 		
-		// Make sure to replace the the IP to your local WIFI ip or localhost
-		socket = WebSocket(request: URLRequest(url: URL(string: "ws://192.168.86.148:8080/ws/websocket")!))
+		// Make sure to replace the the IP to your local Wi-Fi IP or localhost
+//		socket = WebSocket(request: URLRequest(url: URL(string: "ws://192.168.86.148:8080/ws/websocket")!))
+        
+        // If you're using simulator and you want to connect local server. You need to find the IP address on your Wi-Fi: Open Network Preference -> You will see "Wi-Fi is connected to xxx and has the IP address 192.168.86.222.", then use the IP address like this:
+        socket = WebSocket(request: URLRequest(url: URL(string: "ws://192.168.86.222:8080/ws/websocket")!))
 		
 		socket?.delegate = self
 		socket?.connect()
 		
 		socket?.onEvent = { event in
-			
+			print("onEvent - \(event)")
 		}
 	}
 	

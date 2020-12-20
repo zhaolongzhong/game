@@ -67,7 +67,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Make sure you connect localhost properly, https://stackoverflow.com/a/4779992
-        stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.86.148:8080/ws/websocket");
+//        stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.86.148:8080/ws/websocket");
+        
+        // If you're using emulator, you need to use "10.0.2.2" instead of "localhost" or "127.0.0.1".
+        // see https://developer.android.com/studio/run/emulator-networking
+        stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/ws/websocket");
         stompClient.withClientHeartbeat(3000); // Set heart beat 3s
         stompClient.connect();
 
