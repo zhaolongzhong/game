@@ -68,6 +68,8 @@ public enum ConnectionState {
 
 protocol SocketDelegate {
 	func didConnected()
+    
+    func onEvent(event: WebSocketEvent)
 }
 
 class StompClient {
@@ -112,8 +114,14 @@ class StompClient {
 		
 		socket?.onEvent = { event in
 			print("onEvent - \(event)")
+            self.socketDelegate?.onEvent(event: event)
 		}
 	}
+    
+    func closeConnection() {
+        socket?.disconnect()
+        socket = nil
+    }
 	
 	func sendPing() {
 		guard connectionState == .Connected else {

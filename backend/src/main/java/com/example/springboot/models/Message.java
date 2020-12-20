@@ -2,18 +2,18 @@ package com.example.springboot.models;
 
 public class Message {
     private final String userId;
-    private final String Content;
+    private final String message;
 
-    public Message(String userId, String content) {
+    public Message(String userId, String message) {
         this.userId = userId;
-        Content = content;
+        this.message = message;
     }
 
     public String getUserId() {
         return userId;
     }
 
-    public String getContent() {
-        return Content;
+    public String getMessage() {
+        return message;
     }
 }

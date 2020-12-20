@@ -6,14 +6,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import io.reactivex.Completable;
 import io.reactivex.disposables.Disposable;
 import ua.naiksoftware.stomp.Stomp;
 import ua.naiksoftware.stomp.StompClient;
@@ -21,6 +20,8 @@ import ua.naiksoftware.stomp.StompClient;
 public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "MainActivity";
+    private TextView statusTextView;
+
     @Nullable
     private StompClient stompClient;
     @Nullable
@@ -32,12 +33,33 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TextView helloWorldTextView = findViewById(R.id.hello_world_text_view);
-        helloWorldTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                helloWorldTextViewOnClick();
+        Button connectWebSocketButton = findViewById(R.id.connect_websocket_button);
+        Button sendGreetButton = findViewById(R.id.send_greeting_button);
+        Button sendMessageButton = findViewById(R.id.send_message_button);
+        Button disconnectButton = findViewById(R.id.disconnect_button);
+        statusTextView = findViewById(R.id.status_text_view);
+
+
+        connectWebSocketButton.setOnClickListener((View v) -> {
+            Log.d(TAG, "connectWebSocketButton clicked");
+            if (stompClient == null) {
+                initWebSocket();
+            } else if (stompClient.isConnected()) {
+                Log.d(TAG, "onClick stompClient is connected");
+                updateStatus("Already connected");
             }
+        });
+
+        sendGreetButton.setOnClickListener((View v) -> {
+            subscribeAndSendGreeting();
+        });
+
+        sendMessageButton.setOnClickListener((View v) -> {
+            subscribeAndSendMessage();
+        });
+
+        disconnectButton.setOnClickListener((View v) -> {
+            closeConnection();
         });
     }
 
@@ -45,18 +67,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         closeConnection();
         super.onStop();
-    }
-
-    private void helloWorldTextViewOnClick() {
-        Log.d(TAG, "onClick");
-
-        if (stompClient == null) {
-            initWebSocket();
-        } else if (stompClient.isConnected()) {
-            Log.d(TAG, "onClick stompClient is connected");
-            subscribeAndSendGreeting();
-            subscribeAndSendChat();
-        }
     }
 
     private void initWebSocket() {
@@ -68,11 +78,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Make sure you connect localhost properly, https://stackoverflow.com/a/4779992
 //        stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.86.148:8080/ws/websocket");
-        
+
         // If you're using emulator, you need to use "10.0.2.2" instead of "localhost" or "127.0.0.1".
         // see https://developer.android.com/studio/run/emulator-networking
         stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/ws/websocket");
-        stompClient.withClientHeartbeat(3000); // Set heart beat 3s
+        stompClient.withClientHeartbeat(5000); // Set heart beat 5s
         stompClient.connect();
 
         if (disposableLifecycle != null) {
@@ -83,13 +93,12 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "stompClient lifecycleEvent: " + lifecycleEvent.getType() + ", message: " + lifecycleEvent.getMessage());
             switch (lifecycleEvent.getType()) {
                 case OPENED:
+                    updateStatus("WebSocket connection opened");
                     Log.d(TAG, "stompClient connection opened");
                     break;
-
                 case ERROR:
                     Log.e(TAG, "Error", lifecycleEvent.getException());
                     break;
-
                 case CLOSED:
                     Log.d(TAG, "stompClient connection closed");
                     break;
@@ -97,9 +106,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * A helper method to update status on UI thread
+     * @param message
+     */
+    private void updateStatus(String message) {
+        runOnUiThread(() -> { statusTextView.setText(message); });
+    }
+
     private void closeConnection() {
         if (stompClient != null) {
             stompClient.disconnect();
+            stompClient = null;
+            updateStatus("WebSocket disconnected");
         }
 
         for (Disposable disposable : disposableMap.values()) {
@@ -114,43 +133,67 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        Log.d(TAG, "subscribeAndSendGreeting");
+        subscribeGreeting();
+        sendGreeting();
+    }
 
-        if (!disposableMap.containsKey("greetingTopicDisposable")) {
-            Disposable greetingTopicDisposable = stompClient.topic("/topic/greeting")
-                    .doOnError(throwable -> System.out.println("inx onError:" + throwable.getMessage()))
-                    .subscribe(topicMessage -> {
-                        Log.d(TAG, "greetingTopicDisposable topicMessage: " + topicMessage);
-                    });
-            disposableMap.put("greetingTopicDisposable", greetingTopicDisposable);
-        }
-
-
-        String message = "Android";
+    private void sendGreeting() {
+        Log.d(TAG, "sendGreetings");
+        String message = "A greeting from an Android user.";
         stompClient.send("/topic/greeting", message)
                 .doOnError(throwable -> Log.e(TAG, "greetingSendDisposable error:" + throwable.getMessage()))
                 .subscribe()
                 .dispose();
-
     }
 
-    private void subscribeAndSendChat() {
+    /**
+     * Subscribe /topic/greeting, and receive message whenever there's one
+     */
+    private void subscribeGreeting() {
+        if (!disposableMap.containsKey("greetingTopicDisposable")) {
+            Log.d(TAG, "subscribeGreeting");
+            Disposable greetingTopicDisposable = stompClient.topic("/topic/greeting")
+                    .doOnError(throwable -> updateStatus("inx onError:" + throwable.getMessage()))
+                    .subscribe(topicMessage -> {
+                        Log.d(TAG, "greetingTopicDisposable topicMessage: " + topicMessage);
+                        updateStatus("receive greeting: " + topicMessage);
+                    });
+            disposableMap.put("greetingTopicDisposable", greetingTopicDisposable);
+        }
+    }
+
+    private void subscribeAndSendMessage() {
         if (stompClient == null) {
             return;
         }
 
-        Log.d(TAG, "subscribeAndSendChat");
+        subscribeMessage();
+        sendMessage();
+    }
 
-        if (!disposableMap.containsKey("chatTopicDisposable")) {
-            Disposable chatTopicDisposable = stompClient.topic("/topic/chat")
-                    .doOnError(throwable -> System.out.println("chatTopicDisposable error:" + throwable.getMessage()))
-                    .subscribe(topicMessage -> Log.d(TAG, "chatTopicDisposable topicMessage: " + topicMessage));
-            disposableMap.put("chatTopicDisposable", chatTopicDisposable);
-        }
+    private void sendMessage() {
+        Log.d(TAG, "sendMessage");
 
-        stompClient.send("/topic/chat", "{\"userId\": \"id_123\", \"message\": \"hello, i'm id_123\"}")
+        String message = "A message from an Android user at " + new Date();
+        stompClient.send("/topic/chat", "{\"userId\": \"id_android_user\", \"message\": \"" + message + "\"}")
                 .doOnError(throwable -> Log.e(TAG, "chatSendDisposable error: " + throwable.getMessage()))
                 .subscribe()
                 .dispose();
+    }
+
+    /**
+     * Subscribe /topic/chat, and receive message whenever there's one
+     */
+    private void subscribeMessage() {
+        if (!disposableMap.containsKey("chatTopicDisposable")) {
+            Log.d(TAG, "subscribeMessage");
+            Disposable chatTopicDisposable = stompClient.topic("/topic/chat")
+                    .doOnError(throwable -> updateStatus("chatTopicDisposable error:" + throwable.getMessage()))
+                    .subscribe(topicMessage -> {
+                        Log.d(TAG, "chatTopicDisposable topicMessage: " + topicMessage);
+                        updateStatus("receive message: " + topicMessage);
+                    });
+            disposableMap.put("chatTopicDisposable", chatTopicDisposable);
+        }
     }
 }
