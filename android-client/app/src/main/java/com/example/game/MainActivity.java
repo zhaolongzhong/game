@@ -81,7 +81,11 @@ public class MainActivity extends AppCompatActivity {
 
         // If you're using emulator, you need to use "10.0.2.2" instead of "localhost" or "127.0.0.1".
         // see https://developer.android.com/studio/run/emulator-networking
-        stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/ws/websocket");
+        HashMap<String, String> headers = new HashMap<>();
+        // If the WebSocket endpoint requires authentication, we need to pass access token here.
+        String accessToken = "";
+        headers.put("Authorization", "Bearer " + accessToken);
+        stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/ws/websocket", headers);
         stompClient.withClientHeartbeat(5000); // Set heart beat 5s
         stompClient.connect();
 
@@ -108,10 +112,13 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * A helper method to update status on UI thread
+     *
      * @param message
      */
     private void updateStatus(String message) {
-        runOnUiThread(() -> { statusTextView.setText(message); });
+        runOnUiThread(() -> {
+            statusTextView.setText(message);
+        });
     }
 
     private void closeConnection() {
